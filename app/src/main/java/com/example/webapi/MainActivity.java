@@ -1,65 +1,86 @@
+
 package com.example.webapi;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    RecyclerView recyclerPersonajes;
+    EditText txtBuscar;
+    Button btnBuscar;
+    RecyclerView recyclerLibros;
 
-    ArrayList<Personaje> listaPersonajes;
-
-    PersonajeAdapter adapter;
+    ArrayList<Libro> listaLibros;
+    LibroAdapter adapter;
+    RequestQueue queue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
-        recyclerPersonajes =
-                findViewById(R.id.recyclerPersonajes);
+        txtBuscar = findViewById(R.id.txtBuscar);
+        btnBuscar = findViewById(R.id.btnBuscar);
+        recyclerLibros = findViewById(R.id.recyclerLibros);
 
-        listaPersonajes = new ArrayList<>();
+        listaLibros = new ArrayList<>();
+        adapter = new LibroAdapter(listaLibros);
 
-        adapter = new PersonajeAdapter(listaPersonajes);
-
-        recyclerPersonajes.setLayoutManager(
+        recyclerLibros.setLayoutManager(
                 new LinearLayoutManager(this)
         );
+        recyclerLibros.setAdapter(adapter);
 
-        recyclerPersonajes.setAdapter(adapter);
+        queue = Volley.newRequestQueue(this);
 
-        obtenerPersonajes();
+        btnBuscar.setOnClickListener(v -> {
+            String titulo = txtBuscar.getText()
+                    .toString().trim();
+
+            if (titulo.isEmpty()) {
+                Toast.makeText(
+                        this,
+                        "Ingresá el título de un libro",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            buscarLibros(titulo);
+        });
     }
 
-    private void obtenerPersonajes() {
 
-        String url = "https://rickandmortyapi.com/api/character";
+    private void buscarLibros(String titulo) {
 
-        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = Uri.parse(
+                        "https://openlibrary.org/search.json"
+                )
+                .buildUpon()
+                .appendQueryParameter("title", titulo)
+                .appendQueryParameter(
+                        "fields",
+                        "title,author_name,publisher"
+                )
+                .appendQueryParameter("limit", "20")
+                .build()
+                .toString();
+
+        listaLibros.clear();
+        adapter.notifyDataSetChanged();
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
@@ -67,35 +88,113 @@ public class MainActivity extends AppCompatActivity {
                 null,
 
                 response -> {
-
                     try {
-                        JSONArray resultados = response.getJSONArray("results");
+                        JSONArray resultados =
+                                response.optJSONArray("docs");
 
-                        for (int i = 0; i < resultados.length(); i++) {
+                        if (resultados == null ||
+                                resultados.length() == 0) {
+                            Toast.makeText(
+                                    this,
+                                    "No se encontraron libros",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
+                        }
 
-                            JSONObject json = resultados.getJSONObject(i);
+                        for (int i = 0;
+                             i < resultados.length(); i++) {
 
-                            Personaje personaje = new Personaje(
-                                    json.getString("name"),
-                                    json.getString("status"),
-                                    json.getString("species")
+                            JSONObject item =
+                                    resultados.getJSONObject(i);
+
+                            String nombre = item.optString(
+                                    "title",
+                                    "Sin título"
                             );
 
-                            listaPersonajes.add(personaje);
+                            String autores = "Sin autores";
+                            JSONArray autoresJSON =
+                                    item.optJSONArray("author_name");
+
+                            if (autoresJSON != null &&
+                                    autoresJSON.length() > 0) {
+
+                                ArrayList<String> nombresAutores =
+                                        new ArrayList<>();
+
+                                for (int j = 0;
+                                     j < autoresJSON.length(); j++) {
+                                    nombresAutores.add(
+                                            autoresJSON.optString(j)
+                                    );
+                                }
+
+                                autores = android.text.TextUtils.join(
+                                        ", ",
+                                        nombresAutores
+                                );
+                            }
+
+                            String editorial =
+                                    "Editorial desconocida";
+
+                            JSONArray editorialesJSON =
+                                    item.optJSONArray("publisher");
+
+                            if (editorialesJSON != null &&
+                                    editorialesJSON.length() > 0) {
+                                editorial =
+                                        editorialesJSON.optString(
+                                                0,
+                                                "Editorial desconocida"
+                                        );
+                            }
+
+                            listaLibros.add(
+                                    new Libro(
+                                            nombre,
+                                            autores,
+                                            editorial
+                                    )
+                            );
                         }
 
                         adapter.notifyDataSetChanged();
 
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        android.util.Log.e(
+                                "OPEN_LIBRARY",
+                                "Error al procesar libros",
+                                e
+                        );
+
+                        Toast.makeText(
+                                this,
+                                "Error al procesar los libros",
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
                 },
 
-                volleyError -> {
+                error -> {
+                    String detalle = "Error de conexión";
+
+                    if (error.networkResponse != null) {
+                        detalle = "HTTP " +
+                                error.networkResponse.statusCode;
+                    }
+
+                    android.util.Log.e(
+                            "OPEN_LIBRARY",
+                            "Error al consultar Open Library",
+                            error
+                    );
+
                     Toast.makeText(
                             this,
-                            "Error al consultar la API",
-                            Toast.LENGTH_SHORT
+                            detalle,
+                            Toast.LENGTH_LONG
                     ).show();
                 }
         );
@@ -103,68 +202,4 @@ public class MainActivity extends AppCompatActivity {
         queue.add(request);
     }
 
-/*    private void obtenerPersonajes() {
-        new Thread(() -> {
-
-            try {
-
-                URL url = new URL("https://rickandmortyapi.com/api/character");
-
-                HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-
-                conexion.setRequestMethod("GET");
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
-
-                StringBuilder respuesta = new StringBuilder();
-
-                String linea;
-
-                while ((linea = reader.readLine()) != null) {
-                    respuesta.append(linea);
-                }
-
-                reader.close();
-
-                conexion.disconnect();
-
-                JSONObject json = new JSONObject(respuesta.toString());
-
-                JSONArray resultados = json.getJSONArray("results");
-
-                for (int i = 0; i < resultados.length(); i++) {
-
-                    JSONObject personajeJSON = resultados.getJSONObject(i);
-
-                    String nombre = personajeJSON.getString("name");
-
-                    String estado = personajeJSON.getString("status");
-
-                    String especie = personajeJSON.getString("species");
-
-                    Personaje personaje = new Personaje(
-                                    nombre,
-                                    estado,
-                                    especie
-                            );
-
-                    listaPersonajes.add(personaje);
-                }
-
-                runOnUiThread(() -> {
-                    adapter.notifyDataSetChanged();
-                });
-
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(
-                            this,
-                            "Error al consultar la API",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                });
-            }
-
-        }).start();
-    }*/
 }

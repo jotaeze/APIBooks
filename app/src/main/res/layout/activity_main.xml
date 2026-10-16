@@ -10,16 +10,30 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Personajes"
-        android:textSize="28sp"
-        android:textStyle="bold"
         android:gravity="center"
-        android:padding="16dp"/>
+        android:padding="16dp"
+        android:text="Libros"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/txtBuscar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:hint="Ingrese la busqueda..." />
+
+    <Button
+        android:id="@+id/btnBuscar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Buscar" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerPersonajes"
+        android:id="@+id/recyclerLibros"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/item_personaje"/>
+        tools:listitem="@layout/item_libro"/>
 
 </LinearLayout>
