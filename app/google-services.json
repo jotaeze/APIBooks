@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "745647592712",
+    "project_id": "autentificacionapp-faace",
+    "storage_bucket": "autentificacionapp-faace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745647592712:android:a985ab51d7aedb919988bd",
+        "android_client_info": {
+          "package_name": "com.example.webapi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_sb9VDRqH-gNZUhaDn8b4yGbf8CFSyww"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.webapi" />
+                  <option name="mobileSdkAppId" value="1:745647592712:android:a985ab51d7aedb919988bd" />
+                  <option name="projectId" value="autentificacionapp-faace" />
+                  <option name="projectNumber" value="745647592712" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

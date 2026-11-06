@@ -13,6 +13,8 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.FirebaseAuth;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -35,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
         txtBuscar = findViewById(R.id.txtBuscar);
         btnBuscar = findViewById(R.id.btnBuscar);
         recyclerLibros = findViewById(R.id.recyclerLibros);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
 
         listaLibros = new ArrayList<>();
         adapter = new LibroAdapter(listaLibros);
