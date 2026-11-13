@@ -19,6 +19,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class MainActivity extends AppCompatActivity {
 
     EditText txtBuscar;
@@ -29,10 +35,16 @@ public class MainActivity extends AppCompatActivity {
     LibroAdapter adapter;
     RequestQueue queue;
 
+    FirebaseAuth auth;
+    FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
         txtBuscar = findViewById(R.id.txtBuscar);
         btnBuscar = findViewById(R.id.btnBuscar);
@@ -64,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             buscarLibros(titulo);
+            guardarBusqueda(titulo);
         });
     }
 
@@ -204,6 +217,34 @@ public class MainActivity extends AppCompatActivity {
         );
 
         queue.add(request);
+    }
+
+    private void guardarBusqueda(String titulo) {
+
+        String uid = auth.getCurrentUser().getUid();
+
+        Map<String, Object> busqueda = new HashMap<>();
+
+        busqueda.put("titulo", titulo);
+
+        db.collection("usuarios")
+                .document(uid)
+                .collection("busquedas")
+                .add(busqueda)
+                .addOnSuccessListener(documentReference -> {
+
+                    Toast.makeText(this,
+                            "Búsqueda guardada",
+                            Toast.LENGTH_SHORT).show();
+
+                })
+                .addOnFailureListener(e -> {
+
+                    Toast.makeText(this,
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+
+                });
     }
 
 }

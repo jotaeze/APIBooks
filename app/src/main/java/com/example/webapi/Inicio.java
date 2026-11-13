@@ -9,6 +9,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Inicio extends AppCompatActivity {
 
@@ -19,11 +23,14 @@ public class Inicio extends AppCompatActivity {
     Button btnCerrarSesion;
 
     FirebaseAuth auth;
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inicio);
+
+        db = FirebaseFirestore.getInstance();
 
         txtCorreo = findViewById(R.id.txtCorreo);
         txtContrasena = findViewById(R.id.txtContrasena);
@@ -57,11 +64,35 @@ public class Inicio extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
 
-                        Toast.makeText(this,
-                                "Usuario registrado correctamente",
-                                Toast.LENGTH_SHORT).show();
+                        String uid = auth.getCurrentUser().getUid();
 
-                    } else {
+                        String email = auth.getCurrentUser().getEmail();
+
+                        Map<String, Object> usuario = new HashMap<>();
+
+                        usuario.put("email", email);
+
+                        usuario.put("nombre", "Usuario APIBooks");
+
+                        db.collection("usuarios")
+                                .document(uid)
+                                    .set(usuario)
+                                .addOnSuccessListener(unused -> {
+
+                                    Toast.makeText(this,
+                                            "Usuario guardado en Firestore",
+                                            Toast.LENGTH_SHORT).show();
+
+                                })
+                                .addOnFailureListener(e -> {
+
+                                    Toast.makeText(this,
+                                            "Error: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+
+                                });
+                    }
+                    else {
 
                         Toast.makeText(this,
                                 "Error: " + task.getException().getMessage(),
@@ -87,6 +118,26 @@ public class Inicio extends AppCompatActivity {
                     if (task.isSuccessful()) {
 
                         String uid = auth.getCurrentUser().getUid();
+                        String email = auth.getCurrentUser().getEmail();
+
+                        Map<String, Object> usuario = new HashMap<>();
+
+                        usuario.put("email", email);
+                        usuario.put("nombre", "Usuario APIBooks");
+
+                        db.collection("usuarios")
+                                .document(uid)
+                                .set(usuario)
+                                .addOnSuccessListener(unused -> {
+                                    Toast.makeText(this,
+                                            "Usuario guardado en Firestore",
+                                            Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this,
+                                            "Error: " + e.getMessage(),
+                                            Toast.LENGTH_LONG).show();
+                                });
 
                         Toast.makeText(this,
                                 "Bienvenido. UID: " + uid,
